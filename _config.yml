@@ -17,7 +17,7 @@ title: Memo
 email: bjbj6363@gmail.com
 description: >- # this means to ignore newlines until "baseurl:"
   React, Typescript, 취미에 대한 글을 씁니다.
-baseurl: '' # the subpath of your site, e.g. /blog
+baseurl: '/' # the subpath of your site, e.g. /blog
 url: 'https://jonir227.github.io' # the base hostname & protocol for your site, e.g. http://example.com
 github_username: Jonir227
 
