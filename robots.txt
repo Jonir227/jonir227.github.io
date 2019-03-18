@@ -1,2 +1,2 @@
 User-agent: *
-Sitemap: https://songyunseop.github.io/sitemap.xml
+Sitemap: https://jonir227.github.io/sitemap.xml
