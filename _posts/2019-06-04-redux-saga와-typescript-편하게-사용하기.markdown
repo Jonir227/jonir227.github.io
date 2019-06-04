@@ -48,7 +48,7 @@ const createEntityAction = entity => ({
 });
 ```
 
-이 패턴을 사용하면 간단한 비동기 호출은 정말 편하게 사용할 수 있다. `user`의 정보를 가져온다고 생각해보자.
+이 패턴을 사용하면 간단한 비동기 호출은 정말 편하게 작성할 수 있다. `user`의 정보를 가져온다고 생각해보자.
 
 ```js
 const fetchUserAPI = async userId => (await axios.get(`/user/${userId}`)).data;
@@ -70,12 +70,14 @@ export const user = createEntityAction(USER);
 const fetchUserSaga = fetchEntity(user, fetchUserAPI);
 
 function* fetchUserWatcher() {
-  const { call } = yield take(FETCH_USER);
-  yield call(fetchUserSaga);
+  const {
+    payload: { id },
+  } = yield take(FETCH_USER);
+  yield call(fetchUserSaga, id);
 }
 ```
 
-`fetchEntity`패턴을 사용하면 기본적인 비동기 호출은 대부분 대응이 가능하다고 할 수 있다. `fetchUserWatcher`에서는 `call`을 사용했지만, 상황에 따라서 `fork`나, 혹은 `watcher`자체를 `takeLatest`나 `takeLeading`으로 사용해도 무방하다.
+`fetchEntity`패턴을 사용하면 기본적인 비동기 호출은 대부분 대응이 가능하다. `fetchUserWatcher`에서는 `call`을 사용했지만, 상황에 따라서 `fork`나, 혹은 `watcher`자체를 `takeLatest`나 `takeLeading`으로 사용해도 무방하다.
 
 ## TypeScript
 
