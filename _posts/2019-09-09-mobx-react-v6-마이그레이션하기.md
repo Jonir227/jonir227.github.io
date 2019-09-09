@@ -103,6 +103,18 @@ const UserProfile = () => {
 
 핵심적인 내용을 위해서 몇 가지 내용을 제거한 코드를 보자. `mobx`의 `reaction`을 알고 있다면 꽤 간단하게 짜여져 있다.
 
+우선 `mobx`의 `Raction`에 대해서 짚어보고 넘어가자. 공식 문서에 있는 `reaction`과는 살짝 다르다. `reaction`은 함수 내부에서 `Reaction`을 사용하여 구현되어 있다.
+
+```
+ * The state machine of a Reaction is as follows:
+ *
+ * 1) 인스턴스가 생성된 뒤에는 reaction은 반드시 runReaction을 호출하거나 스케줄링함으로서 시작되어야 합니다.
+ * 2) `onInvalidate`는 반드시 `this.track(someFunction)`를 호출해야 합니다.
+ * 3) `someFunction`에서 접근되는 모든 옵저버블은 이 reaction에 의해서 관찰되어집니다.
+ * 4) Reaction의 someFunction의 디펜던시가 변경되게 되면 이 다음 실행때 리스케줄됩니다. 디펜던시가 변경되었을때 `isScheduled`가 ture로 변경됩니다.
+ * 5) `onInvalidate`가 실행되고, 1번으로 되돌아갑니다.
+```
+
 ```ts
 // 원본 코드
 // https://github.com/mobxjs/mobx-react-lite/blob/master/src/useObserver.ts
