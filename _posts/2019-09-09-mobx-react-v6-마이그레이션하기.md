@@ -17,42 +17,43 @@ categories: develop
 
 ```js
 export function observer(arg1, arg2) {
-    // ... 기타 내용들
-    // Stateless function component:
-    // If it is function but doesn't seem to be a react class constructor,
-    // wrap it to a react class automatically
-    if (
-        typeof componentClass === "function" &&
-        (!componentClass.prototype || !componentClass.prototype.render) &&
-        !componentClass.isReactClass &&
-        !Component.isPrototypeOf(componentClass)
-    ) {
-        const observerComponent = observer(
-            class extends Component {
-                static displayName = componentClass.displayName || componentClass.name
-                static contextTypes = componentClass.contextTypes
-                static propTypes = componentClass.propTypes
-                static defaultProps = componentClass.defaultProps
-                render() {
-                    return componentClass.call(this, this.props, this.context)
-                }
-            }
-        )
-        hoistStatics(observerComponent, componentClass)
-        return observerComponent
-    }
-    // 기타 내용들
+  // ... 기타 내용들
+  // Stateless function component:
+  // If it is function but doesn't seem to be a react class constructor,
+  // wrap it to a react class automatically
+  if (
+    typeof componentClass === "function" &&
+    (!componentClass.prototype || !componentClass.prototype.render) &&
+    !componentClass.isReactClass &&
+    !Component.isPrototypeOf(componentClass)
+  ) {
+    const observerComponent = observer(
+      class extends Component {
+        static displayName = componentClass.displayName || componentClass.name;
+        static contextTypes = componentClass.contextTypes;
+        static propTypes = componentClass.propTypes;
+        static defaultProps = componentClass.defaultProps;
+        render() {
+          return componentClass.call(this, this.props, this.context);
+        }
+      }
+    );
+    hoistStatics(observerComponent, componentClass);
+    return observerComponent;
+  }
+  // 기타 내용들
+}
 ```
 
-당연히 리액트에 `hooks`이 들어온 지금 `Stateless Function Component`는 더이상 맞지 않는 주석이다. 함수 컴포넌트를 클래스로 변형해서 사용을 하니 당연히 경고가 나오고 `hook`을 사용할 수 없게 된다.
+리액트에 `hooks`이 들어온 지금 `Stateless Function Component`는 더이상 맞지 않는 주석이다. 함수 컴포넌트를 클래스의 랜더 함수에서 실행시켜 리턴하니 경고가 나오고 클래스의 안쪽이므로 자연스럽게 `hook`을 사용할 수 없게 된다.
 
-이런 문제점은 `mobx`커뮤니티에서 당연히 문제가 되었고 이런 구조들을 개선하기 위해서 라이브러리 전체를 다시 쓰게 되는데, 그래서 나온 것이 `mobx-react-lite`이다.
+이런 문제점은 `mobx`커뮤니티에서 문제가 되었고 이런 구조들을 개선하기 위해서 라이브러리 전체를 다시 쓰게 되는데, 그래서 나온 것이 `mobx-react-lite`이다.
 
 # `mobx-react-lite`
 
-이 라이브러리는 완전히 다시 쓰여진 모브엑스의 새 버전이다. 그렇다면 `mobx-react`는 어떻게 되는가? 다음 버전인 v6으로 업데이트 되었지만, 내부는 기존 라이브러리의 호환성을 유지하기 위해서 v5의 함수들을 이 라이브러리로 구현해 둔 것 뿐이다.
+이 라이브러리는 완전히 다시 쓰여진 모브엑스의 새 버전이다. 그렇다면 `mobx-react`는 어떻게 되는가? 다음 버전인 v6으로 업데이트 되었지만, 내부는 기존 라이브러리의 호환성을 유지하기 위해서 v5의 함수들을 이 라이브러리로 구현해 둔 것으로 앞으로 주력 개선사항은 `mobx-react-lite`에서 개발될 것으로 생각이 된다.
 
-모브엑스 리액트 라이트는 `hooks`의 도입과 `legacy context`의 도입 이 두가지를 가장 염두에 둔 것으로 보인다. 이 새 라이브러리가 문제를 어떻게 해결했는지 살펴보자.
+`mobx-react-lite`는 `hooks`의 도입과 `legacy context`의 제거 이 두가지를 가장 염두에 둔 것으로 보인다. 이 새 라이브러리가 문제를 어떻게 해결했는지 살펴보자.
 
 ## `legacy context`
 
@@ -95,7 +96,9 @@ const UserProfile = () => {
 };
 ```
 
-사실 지금 `mobx`가 훅을 어떻게 사용하는지 들여다본다면, `Provider`의 존재조차 필요가 없다. 자세한 내용은 `hook`을 설명하면서 상세히 들여다 보겠다.
+이렇게 함으로서 `mobx`는 `inject`를 사용할 필요가 없어졌다. 간결하게 작성할수 있으며 context를 이용하기 때문에 타입스크립트의 타입 추론도 더 잘 받을수 있게 되었다.
+
+사실 `mobx-react-lite`가 훅을 어떻게 사용하는지 들여다본다면 `Provider`의 존재조차 필요가 없다. 자세한 내용은 `hook`을 설명하면서 상세히 들여다 보겠다.
 
 ## `hooks`
 
@@ -140,12 +143,7 @@ export function useObserver<T>(
     }
   };
 
-  useEffect(
-    () => () => {
-      dispose();
-    },
-    []
-  );
+  useEffect(() => dispose, []);
 
   // reaction의 안쪽에 인자로 받은 함수를 실행시켜준다.
   // 따라서, 인자로 넘겨주는 함수의 안쪽에 observable이 존재하면 이 값이 변경될때마다 리랜더가 되는 것이다.
@@ -170,7 +168,7 @@ export function useObserver<T>(
 }
 ```
 
-코드를 보았다면 눈치가 빠른 사람들은 왜 `Provider`가 필요없는지 알 수 있을 것이다. 더이상 context를 통해서 상태를 전달받을 필요가 없어졌다. 단지 `useObserver`안에 `observable`한 값만 존재하면 된다. 이 `hook`이 알아서 변경을 추적해서 리랜더를 한다. 이렇게 된다면 `store`를 싱글톤으로 만들고, 컴포넌트에서 그냥 가져다가 쓰는 방식으로 사용할 수도 있다. 물론 `mobx` 공식 문서에서는 [테스트를 위해서라면 권장하지 않는다](https://mobx-react.js.org/recipes-context)고 쓰여져 있다.
+눈치가 빠른 사람들은 왜 `Provider`가 필요없는지 알 수 있을 것이다. 업데이트 로직이 훅 안에 전부 존재함으로서 더이상 context를 통해서 상태를 전달받을 필요가 없어졌다. 단지 `useObserver`안에 `observable`한 값만 존재하면 된다. 이 `hook`이 알아서 변경을 추적해서 리랜더를 한다. 이렇게 된다면 `store`를 싱글톤으로 만들고, 컴포넌트에서 그냥 가져다가 쓰는 방식으로 사용할 수도 있다. 물론 `mobx` 공식 문서에서는 [테스트를 위해서라면 권장하지 않는다](https://mobx-react.js.org/recipes-context)고 쓰여져 있다.
 
 # 마이그레이션하기
 
@@ -205,10 +203,11 @@ export function Provider({ children, ...stores }) {
 Provider.displayName = "MobXProvider";
 ```
 
-몇 줄만으로 `Provider`의 구현이 끝났다. 마찬가지로 사용도 간단하다. `MobxProviderContext`는 상위 컨텍스트의 값을 가져와서 사용하기 때문에 컴포넌트에서 호출만 하면 된다.
+몇 줄만으로 `Provider`의 구현이 끝났다. 마찬가지로 사용도 간단하다. `MobxProviderContext`는 상위 컨텍스트의 값을 가져와서 사용하기 때문에 컴포넌트에서 호출만 하면 된다. Inject도, observe로 감싸줄 필요가 없다.
 
 ```js
 const UserProfile = () => {
+  // Inject에 대응하는 부분이다.
   const { userStore } = useContext(MobxProviderContext);
 
   // 이렇게 하면 타입스크립트의 느낌표(!) 지옥에서도 빠져나올 수 있다.
@@ -216,17 +215,28 @@ const UserProfile = () => {
     throw "userStore가 없습니다";
   }
 
+  // observe에 대응하는 부분이다.
   return useObserver(() => (
     <div>
       {userStore.name} - {userStore.age}
     </div>
   ));
+
+  // 혹은, 랜더 시에 필요한 특정 값만 필요하다면 이렇게도 사용할 수 있다.
+  const businessLogicProfile = useObserver(() => {
+    if (!userStore.public) {
+      return "조회할수 없는 프로필입니다";
+    }
+    return `${userStore.name} - ${userStore.age}`;
+  });
+
+  return <div>{businessLogicProfile}</div>;
 };
 ```
 
 각자의 코드베이스가 다르기 때문에 적절한 hook을 작성하여 스토어를 가져다가 쓰면 될 것 같다. 기본 구현이 매우 간단하기 때문이다.
 
-그러면 새로운 코드는 어떻게 짜면 좋을까? 간단하게나마 [예제](https://codesandbox.io/s/friendly-pine-x2fid?fontsize=14)를 작성해 보았다. 가장 인상적인 점은 더이상 타입스크립트의 타입 추론을 !를 사용하여 강제시킬 필요가 없다는 점인것같다.
+그러면 새로운 코드는 어떻게 짜면 좋을까? 간단하게나마 [예제](https://codesandbox.io/s/friendly-pine-x2fid?fontsize=14)를 작성해 보았다. 가장 좋았던 점은 더이상 타입스크립트의 타입 추론을 !를 사용하여 강제시킬 필요가 없다는 점인것같다.
 
 `useObserver`의 사용이 살짝 불편한 감이 없지 않아 있는것 같지만 어쨋든 새로운 기능을 사용해보는 것은 언제나 즐거운 일인 것 같다.
 
