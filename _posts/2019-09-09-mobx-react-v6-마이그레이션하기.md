@@ -108,13 +108,13 @@ const UserProfile = () => {
 
 핵심적인 내용을 위해서 몇 가지 내용을 제거한 코드를 보자. `mobx`의 `reaction`을 알고 있다면 꽤 간단하게 짜여져 있다.
 
-우선 `mobx`의 `Raction`에 대해서 짚어보고 넘어가자. 공식 문서에 있는 `reaction`과는 살짝 다르다. `reaction`은 외부로 노출된 함수이고 `Reaction`은 실제로 기능을 하는 클래스라고 생각하면 될 것 같다. 아래는 `Reaction`코드의 [주석](https://github.com/mobxjs/mobx/blob/2bce97d1e60ae819c25c8f8b04c764f40855e4f6/src/core/reaction.ts#L33)에 쓰여져 있는 동작 과정이다.
+우선 `mobx`의 `Raction`에 대해서 짚어보고 넘어가자. 공식 문서에 있는 `reaction`과는 살짝 다르다. `reaction`은 외부로 노출된 함수이고 `Reaction`은 실제로 기능을 하는 클래스라고 생각하면 될 것 같다. 아래는 `Reaction`코드의 [주석](https://github.com/mobxjs/mobx/blob/master/src/core/reaction.ts#L35)에 쓰여져 있는 동작 과정이다.
 
 ```
  * The state machine of a Reaction is as follows:
  *
  * 1) 인스턴스가 생성된 뒤에는 reaction은 반드시 runReaction을 호출하거나 스케줄링함으로서 시작되어야 합니다.
- * 2) `onInvalidate`는 `this.track(someFunction)`를 호출합니다.
+ * 2) `onInvalidate`는 `this.track(someFunction)`를 호출하는 함수여야 합니다.
  * 3) `someFunction`에서 접근되는 모든 옵저버블은 이 reaction에 의해서 관찰되어집니다.
  * 4) Reaction의 someFunction의 디펜던시가 변경되게 되면 이 다음 실행때 리스케줄됩니다. 디펜던시가 변경되었을때 `isScheduled`가 ture로 변경됩니다.
  * 5) `onInvalidate`가 실행되고, 1번으로 되돌아갑니다.
@@ -146,7 +146,7 @@ export function useObserver<T>(
   const reaction = useRef<Reaction | null>(null);
   if (!reaction.current) {
     reaction.current = new Reaction(`observer(${baseComponentName})`, () => {
-      forceUpdate();
+      forceUpdate(); // 리랜더가 되므로 아래 라인의 track을 다시 호출한다. `onInvalidate`의 조건을 충족시킴
     });
   }
 
