@@ -101,15 +101,17 @@ const UserProfile = () => {
 
 `mobx-react`에서 많은 훅이 추가가 되었지만 가장 눈여겨 볼 만한 훅은 `useObserver`이다. 사실상 이 훅이 `mobx`와 리액트를 이어주는 가장 핵심적인 `hook`이기 때문이다.
 
+새로 추가된 `useLocalStore`같은 함수들은 공식 문서를 보면 사용법이 잘 나와있기 때문에 따로 확인하고 넘어가지 않겠다.
+
 핵심적인 내용을 위해서 몇 가지 내용을 제거한 코드를 보자. `mobx`의 `reaction`을 알고 있다면 꽤 간단하게 짜여져 있다.
 
-우선 `mobx`의 `Raction`에 대해서 짚어보고 넘어가자. 공식 문서에 있는 `reaction`과는 살짝 다르다. `reaction`은 함수 내부에서 `Reaction`을 사용하여 구현되어 있다.
+우선 `mobx`의 `Raction`에 대해서 짚어보고 넘어가자. 공식 문서에 있는 `reaction`과는 살짝 다르다. `reaction`은 외부로 노출된 함수이고 `Reaction`은 실제로 기능을 하는 클래스라고 생각하면 될 것 같다. 아래는 `Reaction`코드의 [주석](https://github.com/mobxjs/mobx/blob/2bce97d1e60ae819c25c8f8b04c764f40855e4f6/src/core/reaction.ts#L33)에 쓰여져 있는 동작 과정이다.
 
 ```
  * The state machine of a Reaction is as follows:
  *
  * 1) 인스턴스가 생성된 뒤에는 reaction은 반드시 runReaction을 호출하거나 스케줄링함으로서 시작되어야 합니다.
- * 2) `onInvalidate`는 반드시 `this.track(someFunction)`를 호출해야 합니다.
+ * 2) `onInvalidate`는 `this.track(someFunction)`를 호출합니다.
  * 3) `someFunction`에서 접근되는 모든 옵저버블은 이 reaction에 의해서 관찰되어집니다.
  * 4) Reaction의 someFunction의 디펜던시가 변경되게 되면 이 다음 실행때 리스케줄됩니다. 디펜던시가 변경되었을때 `isScheduled`가 ture로 변경됩니다.
  * 5) `onInvalidate`가 실행되고, 1번으로 되돌아갑니다.
@@ -159,7 +161,7 @@ export function useObserver<T>(
     []
   );
 
-  // reaction의 안쪽에 인자로 받은 함수를 실행시켜준다.
+  // reaction의 안쪽에 인자로 받은 함수를 실행시켜주고, 스케줄링한다.
   // 따라서, 인자로 넘겨주는 함수의 안쪽에 observable이 존재하면 이 값이 변경될때마다 리랜더가 되는 것이다.
   // 그렇기 때문에 useObserver로 넘겨주는 값들이 비구조화 할당을 하여 주소가 아닌 값이 된다면 값을 추적하지 못하는 것이다.
   // render the original component, but have the
@@ -236,7 +238,7 @@ const UserProfile = () => {
 };
 ```
 
-각자의 코드베이스가 다르기 때문에 적절한 hook을 작성하여 스토어를 가져다가 쓰면 될 것 같다. 기본 구현이 매우 간단하기 때문이다.
+`mobx`는 그 자유도 때문에 프로젝트 구조가 매우 다양할 것이기 때문에 적절한 hook을 작성하여 스토어를 가져다가 쓰면 될 것 같다. 기본 구현이 매우 간단하기 때문이다.
 
 그러면 새로운 코드는 어떻게 짜면 좋을까? 간단하게나마 [예제](https://codesandbox.io/s/friendly-pine-x2fid?fontsize=14)를 작성해 보았다. 가장 인상적인 점은 더이상 타입스크립트의 타입 추론을 !를 사용하여 강제시킬 필요가 없다는 점인것같다.
 
