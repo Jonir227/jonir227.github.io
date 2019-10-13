@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 'Typescript에서 redux-actions대체하기'
+title: "Typescript에서 redux-actions대체하기"
 date: 2019-10-13 19:03:12 +0900
 categories: develop
 ---
@@ -182,6 +182,8 @@ const user = handleActions<User, UserPayloads>(
 
 물론 대안을 찾아보지 않은 것은 아니다. 문제를 해결하기 위한 유명한 라이브러리가 있는데 [`typesafe-actions`](https://github.com/piotrwitek/typesafe-actions)라는 라이브러리이다. 정말 좋은 라이브러리이지만 이 라이브러리의 사용법이 익숙하지 않고, `redux-acton`의 액션-핸들액션 맵핑 방식이 가독성이 매우 뛰어나다고 생각하여 직접 만들기로 했다.
 
+> 수정사항: `typesafe-actions`를 과거에 확인했을때는 이런 객체 맵핑 방식이 지원되지 않았었는데, 올해 4월에 업데이트된 4.1버전부터 지원되는 것을 확인했다. 미리 확인해볼걸 하는 후회가 든다..
+
 # 직접 만들기
 
 앞서서 `redux-actions`의 타입 정의가 엉망이라고 했지만 사실 과거에는 어쩔 수 없었다고 생각한다. `string`타입으로만 문자열을 사용할 수 있었으니까. 하지만 우리에게는 `3.4`버전부터 추가된 `as const`가 있다. 그걸 사용해서 비슷하지만, 타입정의를 정확하게 해주는 대체제를 만들어보자
@@ -192,7 +194,7 @@ const user = handleActions<User, UserPayloads>(
 
 ```ts
 // 리덕스이 표준 액션 객체를 사용한다.
-import { Action } from 'redux';
+import { Action } from "redux";
 
 // `type`를 `string`이 아닌 제네릭으로 두어서 `type`의 타입을 유지하여 리턴한다.
 // 정확한 액션 크리에이터 함수를 만들기 위해서 함수의 시그니쳐를 오버로딩한다.
@@ -230,14 +232,14 @@ type UserActions = ReturnType<typeof changeName | typeof changeAge>;
 
 ```ts
 // 역시 리덕스의 표준 액션 인터페이스를 사용한다.
-import { Action } from 'redux';
+import { Action } from "redux";
 
 // 인자로 받을 리듀서의 키 밸류 맵이다.
 // 리덕스의 액션 타입의 기본은 any로 되어있기 때문에 string으로 만든 액션을 상속받아서 사용한다.
 type ReducerMap<A extends Action<string>, S> = {
   // 액션을 상속받은 A의 `type`의 타입들을 키로 사용한다.
   // 리듀서 함수의 인자로 넘어가는 액션은 그 키 타입에 맞는 액선을 끄집어내서(MatchedAction) 사용한다.
-  [AT in A['type']]?: (state: S, action: MatchedAction<A, AT>) => S;
+  [AT in A["type"]]?: (state: S, action: MatchedAction<A, AT>) => S;
 } & { [key: string]: (state: S, action: Action) => S }; // 객체의 키 접근을 위한 인덱스 시그니쳐
 
 // 인자로 받은 액션들(A) 중에 액션타입(T)이 일치하는 타입만 내보내고 나머지는 지운다.
